@@ -12,27 +12,34 @@ import Combine
 struct WeekView: View {
     
     var date: Date
-    
+
     var body: some View {
+
         NavigationView {
             ZStack{
                 Image(GetTheTimeOfDayForBackground())
                     .resizable()
                     .edgesIgnoringSafeArea(.all)
                     .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-                
-                
+
                 ScrollViewReader { scrollView in
+
                     ScrollView(.horizontal, showsIndicators: false) {
+
                         HStack(spacing: 10) {
+                           
                             ForEach(getAllYears(), id: \.self) { year in
-                                WeekColumnView(year: year, baseDate: date)
+                                WeekColumnView(year: year, baseDate: date).scrollTargetLayout()
+
                             }
                         }
+                        
                         .onAppear {
                             
-                            scrollView.scrollTo(getId(week: date), anchor: .center)
-                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                scrollView.scrollTo(getId(week: date), anchor: .center)
+
+                              }
                             
                         }
                     }
@@ -58,19 +65,20 @@ struct WeekColumnView: View {
     var baseDate: Date
     
     var body: some View {
-        HStack(spacing: 10) {
+        LazyHStack(spacing: 10) {
+            
             ForEach(getAllWeeks(yearStart: year), id: \.self) { week in
                 VStack(spacing: 10) {
                     ForEach(0..<7) { day in
                         if let dayDate = WeekViewController.calendar.date(byAdding: .day, value: day, to: week) {
-                            DayView(date: dayDate)
+                            DayView(date: dayDate).scrollTargetLayout()
+
                         }
                     }
                 }
                 .id(getId(week: week))
             }
         }
-        .scrollTargetLayout()
     }
 }
 
@@ -89,6 +97,7 @@ struct DayView: View {
     }
     
     var body: some View {
+        
         NavigationLink(destination: DayOpenView(datum: dayFullInformation(date))) {
             VStack(alignment: .leading) {
                 
@@ -116,7 +125,7 @@ struct DayView: View {
                             Text("0Std.0min").offset(x: 50,      y:0).foregroundColor(.gray) //Daten einfÃ¼gen
                         }
                         
-                        
+                       
                         Text(dayOfMonth(date))
                             .font(.system(size: 18))
                             .foregroundColor(.gray)
@@ -131,7 +140,9 @@ struct DayView: View {
                 
             }
             .frame(width: 355, height: 70)
-            .border(isToday ? Color.yellow : Color.black)
+            .overlay (
+                RoundedRectangle(cornerRadius: 10).stroke(isToday ? Color.gray : Color.clear)
+            )
             .background(Color.black.opacity(0.4))
             .cornerRadius(10)
         }
